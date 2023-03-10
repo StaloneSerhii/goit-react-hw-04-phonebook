@@ -1,79 +1,72 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormContact } from './formcontact/FormContact';
 import { Contact } from './contacts/Contacsts';
 import { Filter } from './filtr/Filter';
 import shortid from 'shortid';
 
-export class App extends Component {
-  state = {
-    contacts: [],
-    name: '',
-    number: '',
-    filter: '',
-  };
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contact', JSON.stringify(this.state.contacts));
-    }
-  }
 
-  componentDidMount() {
-    const getContact = localStorage.getItem('contact');
-    const parseContact = JSON.parse(getContact);
-    if (parseContact !== null) {
-      this.setState({ contacts: parseContact });
-      return;
-    }
-  }
+const useLocalStorage = (key, defaultValue)=>{
+const [state, setState] = useState(() =>{
+  return JSON.parse(window.localStorage.getItem(key)) ?? defaultValue;
+})
 
-  addNamesContact = (name, number) => {
+useEffect(()=>{
+  window.localStorage.setItem(key, JSON.stringify(state));
+},[key, state])
+
+return [state, setState]
+}
+
+export const App =()=> {
+  const [contacts, setContacts] = useLocalStorage('contacts',  [{ id: 156156, name: 'Rosie Simpson', number: '459-12-56' }])
+  const [filter, setFilter] = useState('')
+
+ const addNamesContact = (name, number) => {
     const addCont = {
       id: shortid.generate(),
       name,
       number,
     };
 
-    const gmapCont = this.state.contacts.map(({ name }) => name.toLowerCase());
-    const nameToLowerCase = name.toLowerCase();
-    if (gmapCont.includes(nameToLowerCase)) {
+    const gmapCont = contacts.find(
+      ({ name }) => name.toLowerCase() === addCont.name.toLowerCase()
+    );
+
+    if (gmapCont) {
       return alert(`${name} is already in contacs.`);
     }
 
-    this.setState(prevState => ({
-      contacts: [addCont, ...prevState.contacts],
-    }));
+    setContacts(prevState => [addCont, ...prevState],
+    );
   };
 
-  filtrChange = e => {
-    this.setState({ filter: e.target.value });
+ const filtrChange = e => {
+    setFilter(e.target.value);
   };
 
-  filterRender = () => {
-    const { filter, contacts } = this.state;
+ const filterRender = () => {
     const normalizedFilter = filter.toLocaleLowerCase();
     return contacts.filter(contact =>
       contact.name.toLocaleLowerCase().includes(normalizedFilter)
     );
   };
 
-  onDelete = id => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== id),
-    }));
+ const onDelete = id => {
+  setContacts(prevState => 
+      prevState.filter(contact => contact.id !== id));
     const localClear = this.state.contacts.filter(contact => contact.id === id);
 
     localStorage.removeItem(localClear[0].name);
-    this.setState({ filter: '' });
+    setFilter({ filter: '' });
   };
 
-  render() {
-    const visibleStat = this.filterRender();
+    const visibleStat = filterRender();
     return (
       <div>
-        <FormContact addNamesContact={this.addNamesContact} />
-        <Filter onChange={this.filtrChange} value={this.state.filter} />
-        <Contact dataContact={visibleStat} onDelete={this.onDelete} />
+        <FormContact addNamesContact={addNamesContact} />
+        <Filter onChange={filtrChange} value={filter} />
+        <Contact dataContact={visibleStat}  onDelete={onDelete}/> 
       </div>
     );
-  }
+  
 }

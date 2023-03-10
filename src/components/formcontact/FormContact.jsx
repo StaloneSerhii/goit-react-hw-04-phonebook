@@ -1,30 +1,40 @@
-import { Component } from 'react';
+import {  useState } from 'react';
 import { FormStyled } from './Form.styled';
 import propTypes from 'prop-types';
 
-export class FormContact extends Component {
-  state = {
-    name: '',
-    number: '',
-  };
+export const FormContact =({addNamesContact})=> {
+const [name, newName] = useState('')
+const [number, newNumber] = useState('')
 
-  hundelChange = e => {
+ const hundelChange = e => {
     const { name, value } = e.target;
-    this.setState({ [name]: value });
+      // if (name === "name") {
+      //   newName(value);
+      // } else if (name === "number"){
+      //   newNumber(value);
+      // }
+
+      switch (name) {
+      case "name":
+        newName(value);
+        break;
+        case "number":
+          newNumber(value);
+        break;
+      default:
+        break;
+    }
   };
 
-  hundSubmit = e => {
+ const hundSubmit = e => {
     e.preventDefault();
-    const { name, number } = this.state;
-
-    this.props.addNamesContact(name, number);
-
-    this.setState({ name: '', number: '' });
+    addNamesContact(name, number);
+    newNumber('');
+    newName('');
   };
 
-  render() {
     return (
-      <FormStyled onSubmit={this.hundSubmit}>
+      <FormStyled onSubmit={hundSubmit}>
         <label>
           Name
           <input
@@ -32,8 +42,8 @@ export class FormContact extends Component {
             name="name"
             pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
             title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-            onChange={this.hundelChange}
-            value={this.state.name}
+            onChange={hundelChange}
+            value={name}
             required
             id="nameInputId"
           />
@@ -45,8 +55,8 @@ export class FormContact extends Component {
             name="number"
             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-            onChange={this.hundelChange}
-            value={this.state.number}
+            onChange={hundelChange}
+            value={number}
             required
           />
         </label>
@@ -54,7 +64,7 @@ export class FormContact extends Component {
       </FormStyled>
     );
   }
-}
+
 
 FormContact.propTypes = {
   addNamesContact: propTypes.func.isRequired,
